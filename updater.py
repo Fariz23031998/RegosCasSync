@@ -1,6 +1,11 @@
 import fdb
 import pyodbc
 from datetime import datetime
+
+import pywintypes
+import win32api
+
+
 def get_date():
 	now = datetime.now()
 	formatted_now = now.strftime("%d.%m.%Y %H:%M:%S")
@@ -26,12 +31,13 @@ class GetFromRegos:
 		self.items_list = []
 		self.my_cursor = None
 		self.last_sync = 0
+		self.path = self.get_short_path_name(database)
 
 	def connect_fdb(self):
 		try:
 			self.mydb = fdb.connect(
 				host=host,
-				database=database,
+				database=self.path,
 				user=user,
 				password=password,
 				charset='utf-8',
@@ -56,10 +62,10 @@ class GetFromRegos:
 
 		if sync_value > self.last_sync:
 			self.last_sync = sync_value
-			print("Database changed")
+			# print("Database changed")
 			return True
 		else:
-			print("Database not changed")
+			# print("Database not changed")
 			return False
 
 	def get_groups(self):
@@ -105,6 +111,12 @@ class GetFromRegos:
 			self.items_list.append(good_list)
 
 		return self.items_list
+
+	def get_short_path_name(self, path):
+		try:
+			return win32api.GetShortPathName(path)
+		except pywintypes.error:
+			return path
 
 
 class UpdateData:
