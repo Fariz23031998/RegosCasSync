@@ -1,7 +1,6 @@
 import fdb
 import pyodbc
 from datetime import datetime
-
 def get_date():
 	now = datetime.now()
 	formatted_now = now.strftime("%d.%m.%Y %H:%M:%S")
@@ -213,11 +212,11 @@ class UpdateData:
 		try:
 			self.my_cursor.execute(query, tuple_arg)
 		except pyodbc.Error as e:
-			print(f"Ошибка: {e} ({get_date()})")
+			# print(f"Ошибка: {e} ({get_date()})")
 			return f"Ошибка: {e} ({get_date()})"
 		else:
 			self.my_cursor.commit()
-			print("Обновлен")
+			# print("Обновлен")
 
 	def get_difference(self, x, y):
 		if -0.5 < x - y < 0.5:

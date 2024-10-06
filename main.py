@@ -1,3 +1,12 @@
+from pystray import Icon, Menu, MenuItem
+from PIL import Image
+import threading
+import sys
+from kivy.config import Config
+Config.set('graphics', 'position', 'custom')
+Config.set('graphics', 'left', 500)
+Config.set('graphics', 'top', 200)
+
 from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -8,6 +17,10 @@ from kivy.clock import Clock
 
 from updater import UpdateData
 from updater import GetFromRegos
+
+Window.set_system_cursor = 'arrow'
+Window.set_icon('logo.png')
+
 
 update_data = UpdateData()
 get_from_regos = GetFromRegos()
@@ -20,6 +33,7 @@ check_time = config["check_time"]
 
 class RegosCasUpdaterApp(App):
     def build(self):
+        self.icon_thread = None
         self.button = Button(text='Обновить база данных!', size_hint=(None, None), height=40, width=240)
         self.button.bind(on_press=self.on_button_click)
         self.text_info = "Последная синхронизация (Cash Server) было в"
@@ -27,11 +41,25 @@ class RegosCasUpdaterApp(App):
         self.label.text_size = (600, None)
         self.label.halign = "center"
 
+        self.title = "RegosCasSync"
+
+        Window.size = (700, 350)
+        Window.borderless = True
+
         self.sync_status = Label(text="",
                                  font_size='20sp')
 
+        self.close_button = Button(text="Выход", size_hint=(None, None), height=40, width=220)
+        self.close_button.bind(on_release=self.on_close)
+
+        button_layout = BoxLayout(orientation="horizontal", spacing=375, padding=[20, 20, 20, 20])
+        button_layout.add_widget(self.button)
+        button_layout.add_widget(self.close_button)
+        button_layout.size_hint_y = None
+        button_layout.height = 80
+
         layout = BoxLayout(orientation="vertical")
-        layout.add_widget(self.button)
+        layout.add_widget(button_layout)
         layout.add_widget(self.label)
         layout.add_widget(self.sync_status)
 
@@ -59,6 +87,42 @@ class RegosCasUpdaterApp(App):
         date_obj = datetime.fromtimestamp(ts)
         date_str = date_obj.strftime("%d.%m.%Y %H:%M:%S")
         return date_str
+
+    def on_close(self, *args):
+        self.hide_to_tray()
+
+    def hide_to_tray(self):
+        # Minimize the app window (or hide it)
+        Window.minimize()
+
+        # Create a system tray icon in a separate thread
+        if not self.icon_thread:
+            self.icon_thread = threading.Thread(target=self.add_to_tray)
+            self.icon_thread.daemon = True
+            self.icon_thread.start()
+
+    def add_to_tray(self):
+        # Load an icon image for the tray (Pillow image required by pystray)
+        image = Image.open("logo.png")  # Path to your icon image
+
+        # Define what happens when user clicks "Exit" in tray menu
+        def on_quit(icon, item):
+            icon.stop()  # Stop the tray icon
+            sys.exit()   # Exit the application
+
+        # Define the tray menu
+        menu = Menu(MenuItem("Exit", on_quit))
+
+        # Create the tray icon
+        icon = Icon("MyApp", image, menu=menu)
+
+        # Run the tray icon (this blocks, so it's on a separate thread)
+        icon.run()
+
+    def on_stop(self):
+        # Handle app exit, stop the tray icon if it's running
+        if self.icon_thread:
+            sys.exit()
 
 
 if __name__ == '__main__':
