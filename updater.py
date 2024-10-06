@@ -18,7 +18,7 @@ database = config["database"]
 user = config["user"]
 password = config["password"]
 mdb_conn = config["mdb_conn"]
-
+divider = config["divider"]
 
 class GetFromRegos:
 	def __init__(self):
@@ -98,7 +98,7 @@ class GetFromRegos:
 			good_list.append(0)
 			for price in prices_list:
 				if good_id == price[0]:
-					good_list[8] = float(price[2])
+					good_list[8] = float(price[2] / divider)
 
 			if item_type != 1:
 				good_list[7] = 3
