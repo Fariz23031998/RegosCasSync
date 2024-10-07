@@ -58,7 +58,7 @@ class RegosCasUpdaterApp(App):
         self.close_button = Button(text="Выход", size_hint=(None, None), height=40, width=220)
         self.close_button.bind(on_release=self.on_close)
 
-        button_layout = BoxLayout(orientation="horizontal", spacing=375, padding=[20, 20, 20, 20])
+        button_layout = BoxLayout(orientation="horizontal", spacing=20, padding=[20, 20, 20, 20])
         button_layout.add_widget(self.button)
         button_layout.add_widget(self.close_button)
         button_layout.size_hint_y = None
@@ -68,7 +68,6 @@ class RegosCasUpdaterApp(App):
         layout.add_widget(button_layout)
         layout.add_widget(self.label)
         layout.add_widget(self.sync_status)
-        Clock.schedule_once(self.on_button_click, 5)
 
         Window.bind(on_key_down=self.on_hotkey)
         Clock.schedule_interval(self.synchronize, check_time)

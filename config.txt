@@ -1,6 +1,6 @@
 {
     "host": "localhost",
-    "database": "C:/REGOS БАЗА/REGOS.FDB",
+    "database": "D:/REGOS BASE/REGOS.FDB",
     "user": "SYSDBA",
     "password": "masterkey",
     "price_type": 1,

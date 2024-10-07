@@ -210,7 +210,8 @@ class UpdateData:
 			tuple_arg_upd = (PluType, Name1, UnitPrice, UpdateDate, GroupNo, PluNo)
 			# print(self.get_difference(1, 1.1))
 			if row_count > 0:
-				if item_row[:5] != tuple_arg_ins[:5] and self.get_difference(item_row[4], UnitPrice):
+				if PluType != item_row[1] or GroupNo != item_row[6] or self.get_difference(item_row[4], UnitPrice) \
+						or item_row[3] != Name1:
 					self.execute_sql(query_update, tuple_arg_upd)
 					# print(f"{item_row[4], type(item_row[4])} = {UnitPrice, type(UnitPrice)}")
 					# print("not same, updated")
@@ -218,6 +219,7 @@ class UpdateData:
 				# 	print("Same, Not updated")
 			else:
 				self.execute_sql(query_insert, tuple_arg_ins)
+
 		self.mydb.commit()
 
 	def execute_sql(self, query, tuple_arg):
