@@ -2,6 +2,7 @@ from pystray import Icon, Menu, MenuItem
 from PIL import Image
 import threading
 import sys
+
 from kivy.config import Config
 Config.set('graphics', 'position', 'custom')
 Config.set('graphics', 'left', 500)
@@ -17,6 +18,8 @@ from kivy.clock import Clock
 
 from updater import UpdateData
 from updater import GetFromRegos
+import ctypes
+
 
 Window.set_system_cursor = 'arrow'
 Window.set_icon('logo.png')
@@ -41,13 +44,16 @@ class RegosCasUpdaterApp(App):
         self.label.text_size = (600, None)
         self.label.halign = "center"
 
+
         self.title = "RegosCasSync"
 
-        Window.size = (700, 350)
+        Window.size = (700, 400)
         Window.borderless = True
 
         self.sync_status = Label(text="",
                                  font_size='20sp')
+        self.sync_status.text_size = (600, None)
+        self.sync_status.halign = "center"
 
         self.close_button = Button(text="Выход", size_hint=(None, None), height=40, width=220)
         self.close_button.bind(on_release=self.on_close)
@@ -62,6 +68,7 @@ class RegosCasUpdaterApp(App):
         layout.add_widget(button_layout)
         layout.add_widget(self.label)
         layout.add_widget(self.sync_status)
+        Clock.schedule_once(self.on_button_click, 5)
 
         Window.bind(on_key_down=self.on_hotkey)
         Clock.schedule_interval(self.synchronize, check_time)
@@ -72,6 +79,8 @@ class RegosCasUpdaterApp(App):
         if get_from_regos.connect_fdb():
             self.sync_status.text = update_data.update_mdb()
             self.label.text = f"{self.text_info} {self.timestamp_to_string(get_from_regos.last_sync)}"
+        else:
+            self.label.text = "Не получается подключится к База Regos"
 
     def synchronize(self, dt):
         if get_from_regos.connect_fdb() and get_from_regos.check_cash_status():
@@ -114,16 +123,32 @@ class RegosCasUpdaterApp(App):
         menu = Menu(MenuItem("Exit", on_quit))
 
         # Create the tray icon
-        icon = Icon("MyApp", image, menu=menu)
+        icon = Icon("RegosCasSync", image, menu=menu)
 
         # Run the tray icon (this blocks, so it's on a separate thread)
         icon.run()
 
     def on_stop(self):
-        # Handle app exit, stop the tray icon if it's running
         if self.icon_thread:
             sys.exit()
 
+def prevent_multiple_instances():
+    """ Use a Windows mutex to prevent multiple instances of the application. """
+    mutex_name = "MyUniqueKivyAppMutex"
+    # Create a named mutex
+    kernel32 = ctypes.windll.kernel32
+    mutex = kernel32.CreateMutexW(None, False, mutex_name)
+
+    # Check if another instance already has the mutex
+    last_error = kernel32.GetLastError()
+
+    ERROR_ALREADY_EXISTS = 183  # Error code for already existing mutex
+    if last_error == ERROR_ALREADY_EXISTS:
+        return False  # Another instance is already running
+    return True  # No other instance is running
+
 
 if __name__ == '__main__':
-    RegosCasUpdaterApp().run()
+    if prevent_multiple_instances():
+        RegosCasUpdaterApp().run()
+
